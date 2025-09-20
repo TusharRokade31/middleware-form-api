@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Application Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="careers-form">
+        <div class="page-header">
+            <h1>Join Our Team</h1>
+            <p>We're looking for talented individuals to join our growing company.</p>
+        </div>
+        
+        <form id="applicationForm" class="contact-form careers-form" enctype="multipart/form-data">
+            <div id="successMessage" class="form-success" style="display: none;">
+                <h3>Application Submitted Successfully!</h3>
+                <p>Our team will review your application and get back to you shortly.</p>
+            </div>
+            
+            <div id="errorMessage" class="form-errors" style="display: none;">
+                <h4>Please correct the following errors:</h4>
+                <ul id="errorList"></ul>
+            </div>
+            
+            <!-- Section 1: Personal Information -->
+            <fieldset class="form-section">
+                <legend>Personal Information</legend>
+                <div class="form-group">
+                    <label for="full_name">Full Name *</label>
+                    <input type="text" name="full_name" id="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail *</label>
+                    <input type="email" name="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Mobile Number *</label>
+                    <input type="tel" name="phone" id="phone" required>
+                </div>
+            </fieldset>
+            
+            <!-- Section 2: Professional Details -->
+            <fieldset class="form-section">
+                <legend>Professional Details</legend>
+                <div class="form-group">
+                    <label for="designation">Your Current Designation *</label>
+                    <input type="text" name="designation" id="designation" required>
+                </div>
+                <div class="form-group">
+                    <label for="employer">Your Current Employer *</label>
+                    <input type="text" name="employer" id="employer" required>
+                </div>
+                <div class="form-group">
+                    <label for="experience">Years of Experience *</label>
+                    <input type="number" name="experience" id="experience" min="0" step="0.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="post_applied">Post Applied For *</label>
+                    <select name="post_applied" id="post_applied" required>
+                        <option value="">Select a Role</option>
+                        <option value="Software Developer">Software Developer</option>
+                        <option value="Frontend Developer">Frontend Developer</option>
+                        <option value="Backend Developer">Backend Developer</option>
+                        <option value="Full Stack Developer">Full Stack Developer</option>
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="Product Manager">Product Manager</option>
+                        <option value="UI/UX Designer">UI/UX Designer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="resume">Resume / CV *</label>
+                    <input type="file" name="resume" id="resume" accept=".pdf,.doc,.docx" required>
+                </div>
+            </fieldset>
+            
+            <!-- Submit Button -->
+            <div class="form-submit">
+                <button type="submit" class="btn btn-primary">Submit Application</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('applicationForm');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorList = document.getElementById('errorList');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Hide previous messages
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+                
+                // Basic validation
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+                const errors = [];
+                
+                requiredFields.forEach(function(field) {
+                    const value = (field.tagName === 'SELECT') ? field.value : (field.value || '').trim();
+                    if (!value) {
+                        isValid = false;
+                        field.style.borderColor = 'red';
+                        errors.push(`${field.previousElementSibling.textContent} is required`);
+                    } else {
+                        field.style.borderColor = '';
+                    }
+                });
+                
+                if (!isValid) {
+                    errorList.innerHTML = errors.map(error => `<li>${error}</li>`).join('');
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Submit form
+                const formData = new FormData(form);
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.textContent = 'Submitting...';
+                
+                try {
+                    const response = await fetch('/api/applications', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        successMessage.style.display = 'block';
+                        form.reset();
+                        form.style.display = 'none';
+                    } else {
+                        throw new Error(result.message || 'Submission failed');
+                    }
+                } catch (error) {
+                    errorList.innerHTML = `<li>${error.message}</li>`;
+                    errorMessage.style.display = 'block';
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Application';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
